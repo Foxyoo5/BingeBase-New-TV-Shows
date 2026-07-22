@@ -65,3 +65,11 @@ rss += "</channel></rss>"
 os.makedirs("docs", exist_ok=True)
 with open("docs/new-tv-shows.xml", "w", encoding="utf-8") as f:
     f.write(rss)
+    
+    # --- DEBUG: inspect the raw structure between first two poster links ---
+first_link = html.find('data-media-card-target="posterLink"')
+second_link = html.find('data-media-card-target="posterLink"', first_link + 10)
+print("--- Full first card HTML ---")
+print(html[max(0, first_link-200):second_link])
+print("--- END first card ---")
+
