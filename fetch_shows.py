@@ -24,22 +24,25 @@ with sync_playwright() as p:
     browser.close()
 
 pattern = re.compile(
+    r'data-media-card-rating-value="([\d.]*)"'
+    r'(?:(?!data-media-card-rating-value=").)*?'
     r'data-media-card-target="posterLink"[^>]+href="(/tv/[^"]+)"[^>]*>\s*'
-    r'<img[^>]+alt="([^"]+?) poster"[^>]+src="(https://cdn\.bingebase\.com/[^"]+)"'
-    r'.*?data-media-card-rating-value="([\d.]*)"'
+    r'<img[^>]+alt="([^"]+?) poster"[^>]+src="(https://cdn\.bingebase\.com/[^"]+)"',
+    re.DOTALL
 )
 
 all_matches = pattern.findall(html)
 
-# only keep shows rated 1.0 or above (0.0 usually means "not yet rated")
-matches = [m for m in all_matches if m[3] and float(m[3]) >= 1.0][:5]
+# only keep shows rated 1.0 or above (0.0/blank usually means "not yet rated")
+matches = [m for m in all_matches if m[0] and float(m[0]) >= 1.0][:5]
 
-matches = pattern.findall(html)[:5]
+print(f"Total cards found: {len(all_matches)}")
+print(f"Found {len(matches)} shows")
 
 q = chr(34)
 items_xml = ""
 
-for href, title, poster, rating in matches:
+for rating, href, title, poster in matches:
     title_clean = title.replace("&", "&amp;")
     link = f"https://bingebase.com{href}"
     items_xml += "<item>"
@@ -62,5 +65,3 @@ rss += "</channel></rss>"
 os.makedirs("docs", exist_ok=True)
 with open("docs/new-tv-shows.xml", "w", encoding="utf-8") as f:
     f.write(rss)
-
-print(f"Found {len(matches)} shows")
