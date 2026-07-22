@@ -26,14 +26,20 @@ with sync_playwright() as p:
 pattern = re.compile(
     r'data-media-card-target="posterLink"[^>]+href="(/tv/[^"]+)"[^>]*>\s*'
     r'<img[^>]+alt="([^"]+?) poster"[^>]+src="(https://cdn\.bingebase\.com/[^"]+)"'
+    r'.*?data-media-card-rating-value="([\d.]*)"'
 )
+
+all_matches = pattern.findall(html)
+
+# only keep shows rated 1.0 or above (0.0 usually means "not yet rated")
+matches = [m for m in all_matches if m[3] and float(m[3]) >= 1.0][:5]
 
 matches = pattern.findall(html)[:5]
 
 q = chr(34)
 items_xml = ""
 
-for href, title, poster in matches:
+for href, title, poster, rating in matches:
     title_clean = title.replace("&", "&amp;")
     link = f"https://bingebase.com{href}"
     items_xml += "<item>"
